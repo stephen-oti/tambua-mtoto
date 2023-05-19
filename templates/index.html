@@ -1,0 +1,164 @@
+<html>
+<head>
+<title>Tambua Mtoto</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />        
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<style>
+    .image-preview-container {
+        width: 50%;
+        margin: 0 auto;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        border-radius: 20px;
+    }
+
+    .image-preview-container img {
+        width: 100%;
+        display: none;
+        margin-bottom: 30px;
+    }
+    .image-preview-container input {
+        display: none;
+    }
+
+    .image-preview-container label {
+        display: block;
+        width: 45%;
+        height: 45px;
+        margin-left: 25%;
+        text-align: center;
+        background: #777;
+        color: #fff;
+        font-size: 15px;
+        text-transform: uppercase;
+        font-weight: 400;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    } 
+    .rows {
+        display: flex;
+    }
+
+    .columns {
+        flex-basis: 30%;
+    }
+    .column2 {
+        flex-basis: 50%;
+    }
+</style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav class="navbar bg-success">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">
+                    <div class="text-success">
+                        <img class="logo" src="static/logo.jpg" style="width: 30px" height="30px" alt="Tambua Mtoto Logo">
+                        <span class="text-bold">Tambua Mtoto</span>
+                    </div>
+                </a>
+            </div>
+        </div>  
+    </nav>
+    <p><h1 align="center">Upload Image to Commence search</h1></p>
+    <!-- Image uploader form -->
+    <div class="container">
+        <div class="image-preview-container">
+            <div class="preview">
+                <img id="preview-selected-image" />
+            </div>
+            <form method="post" action="/" enctype="multipart/form-data">
+                <label for="file-upload">Upload Image</label>
+                <input type="file" id="file-upload" height="240px" name="file" accept="image/*" onchange="previewImage(event);" />
+                <button type="submit" value="submit" class="btn btn-success btn-block">Search</button>
+            </form>
+        </div>
+        <div class="container">
+            <h2>Search Results</h2>
+            <div class="row rows">
+                <div class="columns">
+                    <p>
+                        {% with messages = get_flashed_messages() %}
+                            {% if messages %}
+                                {% for message in messages %}
+                                    <h3>{{ message }}</h3>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    </p>
+                    {% if filename %}
+                        <div>
+                            <img style="width: 240px" height="240px" src="{{ url_for('display_image', filename=filename) }}">
+                        </div>
+                    {% endif %}
+                </div>
+                {% if results %}
+                <div class="column2">
+                    <h3>Top Match Results:</h3>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th> Match</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                                <tr>
+                                    <td>{{ result.image_name }}</td>
+                                    <td>{{ result.similarity_index }}%</td>
+                                    <td>
+                                        <img style="width: 80px" height="80px" src="{{ result.image_path }}">   
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div> <!-- Close col-6 -->
+                {% endif %}
+                </div> <!-- Close row -->
+                </div> <!-- Close container -->
+                </body>
+                <script>
+                /**
+                * Create an arrow function that will be called when an image is selected.
+                */
+                const previewImage = (event) => {
+                    /**
+                    * Get the selected files.
+                    */
+                    const imageFiles = event.target.files;
+                    /**
+                    * Count the number of files selected.
+                    */
+                    const imageFilesLength = imageFiles.length;
+                    /**
+                    * If at least one image is selected, then proceed to display the preview.
+                    */
+                    if (imageFilesLength > 0) {
+                        /**
+                        * Get the image path.
+                        */
+                        const imageSrc = URL.createObjectURL(imageFiles[0]);
+                        /**
+                        * Select the image preview element.
+                        */
+                        const imagePreviewElement = document.querySelector("#preview-selected-image");
+                        /**
+                        * Assign the path to the image preview element.
+                        */
+                        imagePreviewElement.src = imageSrc;
+                        /**
+                        * Show the element by changing the display value to "block".
+                        */
+                        imagePreviewElement.style.display = "block";
+                    }
+                };
+                </script>
+                </html>
+                
