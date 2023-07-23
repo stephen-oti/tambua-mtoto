@@ -1,0 +1,176 @@
+<html>
+<head>
+<title>Tambua Mtoto</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />        
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+<style>
+    .image-preview-container {
+        width: 50%;
+        margin: 0 auto;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        padding: 3rem;
+        border-radius: 20px;
+    }
+
+    .image-preview-container img {
+        width: 100%;
+        display: none;
+        margin-bottom: 30px;
+    }
+    .image-preview-container input {
+        display: none;
+    }
+
+    .image-preview-container label {
+        display: block;
+        width: 45%;
+        height: 45px;
+        margin-left: 25%;
+        text-align: center;
+        background: #777;
+        color: #fff;
+        font-size: 15px;
+        text-transform: uppercase;
+        font-weight: 400;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    } 
+    .rows {
+        display: flex;
+    }
+
+    .columns {
+        flex-basis: 30%;
+    }
+    .column2 {
+        flex-basis: 50%;
+    }
+</style>
+</head>
+<body>
+    <!-- Navigation bar -->
+    <nav class="navbar bg-success">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="#">
+                    <div class="text-success">
+                        <img class="logo" src="static/logo.jpg" style="width: 30px" height="30px" alt="Tambua Mtoto Logo">
+                        <span class="text-bold">Tambua Mtoto</span>
+                    </div>
+                </a>
+            </div>
+        </div>  
+    </nav>
+    <p><h1 align="center">Upload Image to Commence search</h1></p>
+    <!-- Image uploader form -->
+    <div class="container">
+        <div class="image-preview-container">
+            <div class="preview">
+                <img id="preview-selected-image" />
+            </div>
+            <form id="upload-form" enctype="multipart/form-data">
+                <label for="file-upload">Upload Image</label>
+                <input type="file" id="file-upload" height="240px" name="image" accept="image/*" onchange="previewImage(event)" />
+                <button type="submit" value="submit" class="btn btn-success btn-block">Search</button>
+            </form>
+        </div>
+        <div class="container">
+            <h2>Search Results: Top 5 Match Results</h2>
+            
+            <div class="row rows">
+                <!-- <div class="columns">
+                    <p id="flash-message"></p>
+                    <div id="uploaded-image"></div>
+                </div> -->
+                <!-- <div class="column2" id="result-container"> -->
+                    
+                    <table class="table table-striped" id="result-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Match index</th>
+                                <th>Match %</th>
+                                <th>Image</th>
+                            </tr>
+                        </thead>
+                        <tbody id="result-body">
+
+                        </tbody>
+                    </table>
+                <!-- </div> -->
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+$(document).ready(function() {
+    // Submit the form when upload button is clicked
+    $('#upload-form').submit(function(event) {
+        event.preventDefault();
+        var form = $(this)[0];
+        var formData = new FormData(form);
+        
+        // Make an AJAX request to the API endpoint
+        $.ajax({
+            type: 'POST',
+            url: '/match_faces',
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function(response) {
+                // Display flash message
+                $('#flash-message').text('Search Results for:');
+                
+                // Display uploaded image
+                var filename = response[0].filename;
+                var uploadedImage = '<img style="width: 240px" height="240px" src="/display/' + filename + '">';
+                $('#uploaded-image').html(uploadedImage);
+                
+                // Check if the model returned an error indicating no face found
+                if (response.error) {
+                    // Display error message if no face found
+                    $('#result-body').empty();
+                    $('#result-table').hide();
+                    $('#result-container').append('<p>No face found in the uploaded image.</p>');
+                } else {
+                    // Display search results
+                    var resultTable = '';
+                    for (var i = 0; i < response.length; i++) {
+                        var result = response[i];
+                        // Calculate match percentage with four significant figures
+                        var matchPercentage = (result.similarity * 100).toFixed(4);
+                        var row = '<tr>' +
+                            '<td>' + result.filename + '</td>' +
+                            '<td>' + result.similarity + '</td>' +
+                            '<td>' + matchPercentage + '%</td>' +  // Display match percentage
+                            '<td><img style="width: 80px" height="80px" src="' + result.filepath + '"></td>' +
+                            '</tr>';
+                        resultTable += row;
+                    }
+                    $('#result-body').html(resultTable);
+                    $('#result-table').show();
+                }
+            },
+            error: function(xhr, status, error) {
+                // Display error message
+                $('#flash-message').text('Error: ' + xhr.responseText);
+            }
+        });
+    });
+});
+
+function previewImage(event) {
+    var reader = new FileReader();
+    reader.onload = function() {
+        var output = document.getElementById('preview-selected-image');
+        output.src = reader.result;
+        output.style.display = 'block';
+    };
+    reader.readAsDataURL(event.target.files[0]);
+}
+</script>
+
+</html>
